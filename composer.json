@@ -8,6 +8,11 @@
             "Audetv\\YandexSmartCaptcha\\": "src/"
         }
     },
+    "autoload-dev": {
+      "psr-4": {
+        "Audetv\\YandexSmartCaptcha\\Tests\\": "tests/"
+      }
+    },
     "authors": [
         {
             "name": "Aleksey Gusev",
