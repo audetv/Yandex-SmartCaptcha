@@ -1,0 +1,19 @@
+{
+    "name": "audetv/yandex-smart-captcha",
+    "description": "PHP implementation for Yandex SmartCaptcha",
+    "type": "library",
+    "license": "BSD 3-Clause",
+    "autoload": {
+        "psr-4": {
+            "Audetv\\YandexSmartCaptcha\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Aleksey Gusev",
+            "email": "audetv@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}

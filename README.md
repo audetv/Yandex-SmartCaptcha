@@ -1,2 +1,2 @@
 # Yandex-SmartCaptcha
-Php implementation for Yandex SmartCaptcha
+PHP implementation for Yandex SmartCaptcha
