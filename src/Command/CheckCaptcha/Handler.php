@@ -4,9 +4,28 @@ declare(strict_types=1);
 
 namespace Audetv\YandexSmartCaptcha\Command\CheckCaptcha;
 
+use Audetv\YandexSmartCaptcha\Http\HttpRequest;
+
 class Handler
 {
-    const SMARTCAPTCHA_SERVER_KEY = "SMARTCAPTCHA_SERVER_KEY";
+    // const SMARTCAPTCHA_SERVER_KEY = "SMARTCAPTCHA_SERVER_KEY";
+    private string $smartcaptcha_server_key;
+    private string $validation_url;
+    private HttpRequest $curlRequest;
+
+    public function __construct(
+        HttpRequest $curlRequest,
+        string $smartcaptcha_server_key,
+        string $validation_url = ""
+    ) {
+        $this->smartcaptcha_server_key = $smartcaptcha_server_key;
+        if ($validation_url === "") {
+            $this->validation_url = "https://smartcaptcha.yandexcloud.net/validate";
+        } else {
+            $this->validation_url = $validation_url;
+        }
+        $this->curlRequest = $curlRequest;
+    }
 
     /**
      * Handles the given command.
@@ -16,25 +35,22 @@ class Handler
      */
     public function handle(Command $command): bool
     {
-        $token = $command->token;
-        $ip = $command->ip;
-
         $args = http_build_query([
-             "secret" => self::SMARTCAPTCHA_SERVER_KEY,
-             "token" => $token,
-             "ip" => $ip
+                                     "secret" => $this->smartcaptcha_server_key,
+                                     "token" => $command->token,
+                                     "ip" => $command->ip
         ]);
 
-        $validateURL = "https://smartcaptcha.yandexcloud.net/validate";
-        $url = "{$validateURL}?$args";
+        $url = "{$this->validation_url}?$args";
 
-        $ch = curl_init($url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 1);
+        $ch = $this->curlRequest;
+        $ch->setOption(CURLOPT_URL, $url);
+        $ch->setOption(CURLOPT_RETURNTRANSFER, true);
+        $ch->setOption(CURLOPT_TIMEOUT, 1);
+        $server_output = $ch->execute();
+        $httpcode = $ch->getInfo(CURLINFO_HTTP_CODE);
+        $ch->close();
 
-        $server_output = curl_exec($ch);
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
 
         if ($httpcode !== 200) {
             echo "Allow access due to an error: code=$httpcode; message=$server_output\n";
