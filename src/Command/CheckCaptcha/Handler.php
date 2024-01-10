@@ -4,19 +4,20 @@ declare(strict_types=1);
 
 namespace Audetv\YandexSmartCaptcha\Command\CheckCaptcha;
 
+use Audetv\YandexSmartCaptcha\Http\CurlRequest;
 use Audetv\YandexSmartCaptcha\Http\HttpRequest;
 
 class Handler
 {
     protected string $smartCaptchaServerKey;
     protected string $validationUrl;
-    private HttpRequest $curlRequest;
+    private CurlRequest $curl;
 
-    public function __construct(HttpRequest $curlRequest, string $smartCaptchaServerKey, string $validationUrl = "")
+    public function __construct(string $smartCaptchaServerKey, string $validationUrl = "")
     {
-        $this->curlRequest = $curlRequest;
         $this->smartCaptchaServerKey = $smartCaptchaServerKey;
         $this->validationUrl = $validationUrl === "" ? "https://smartcaptcha.yandexcloud.net/validate" : $validationUrl;
+        $this->setCurl(new CurlRequest());
     }
 
     /**
@@ -36,13 +37,14 @@ class Handler
 
         $url = "{$this->validationUrl}?$queryParams";
 
-        $curl = $this->curlRequest;
-        $curl->setOption(CURLOPT_URL, $url);
-        $curl->setOption(CURLOPT_RETURNTRANSFER, true);
-        $curl->setOption(CURLOPT_TIMEOUT, 1);
+        $curl = new CurlRequest();
 
-        $serverOutput = $curl->execute();
-        $httpCode = $curl->getInfo(CURLINFO_HTTP_CODE);
+        $this->curl->setOption(CURLOPT_URL, $url);
+        $this->curl->setOption(CURLOPT_RETURNTRANSFER, true);
+        $this->curl->setOption(CURLOPT_TIMEOUT, 1);
+
+        $serverOutput = $this->curl->execute();
+        $httpCode = $this->curl->getInfo(CURLINFO_HTTP_CODE);
 
         $curl->close();
 
@@ -52,5 +54,10 @@ class Handler
 
         $response = json_decode($serverOutput);
         return $response->status === "ok";
+    }
+
+    public function setCurl(HttpRequest $curl): void
+    {
+        $this->curl = $curl;
     }
 }
