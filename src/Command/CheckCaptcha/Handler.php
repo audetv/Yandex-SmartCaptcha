@@ -6,6 +6,8 @@ namespace Audetv\YandexSmartCaptcha\Command\CheckCaptcha;
 
 class Handler
 {
+    const SMARTCAPTCHA_SERVER_KEY = "SMARTCAPTCHA_SERVER_KEY";
+
     /**
      * Handles the given command.
      *
@@ -18,7 +20,7 @@ class Handler
         $ip = $command->ip;
 
         $args = http_build_query([
-             "secret" => SMARTCAPTCHA_SERVER_KEY,
+             "secret" => self::SMARTCAPTCHA_SERVER_KEY,
              "token" => $token,
              "ip" => $ip
         ]);
