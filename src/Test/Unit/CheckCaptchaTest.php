@@ -6,58 +6,76 @@ namespace Audetv\YandexSmartCaptcha\Test\Unit;
 
 use Audetv\YandexSmartCaptcha\Command\CheckCaptcha\Command;
 use Audetv\YandexSmartCaptcha\Command\CheckCaptcha\Handler;
+use Audetv\YandexSmartCaptcha\Http\CurlRequest;
 use PHPUnit\Framework\TestCase;
 
 class CheckCaptchaTest extends TestCase
 {
-    public function testHandle()
+    public function testHandleValidCommand()
     {
-        // Case 1: Successful handling
+        // Arrange
         $command = new Command();
-        $command->token = "validToken";
+        $command->token = "valid_token";
         $command->ip = "127.0.0.1";
 
-        $handler = new Handler();
+        $mockCurlRequest = $this->createMock(CurlRequest::class);
+        $mockCurlRequest->expects($this->any())
+            ->method('setOption')
+            ->withConsecutive(
+                [$this->equalTo(CURLOPT_URL), $this->equalTo("validation_url?secret=smartcaptcha_server_key&token=valid_token&ip=127.0.0.1")],
+                [$this->equalTo(CURLOPT_RETURNTRANSFER), $this->equalTo(true)],
+                [$this->equalTo(CURLOPT_TIMEOUT), $this->equalTo(1)]
+            );
+        $mockCurlRequest->expects($this->once())
+            ->method('execute')
+            ->willReturn('{"status": "ok"}');
+        $mockCurlRequest->expects($this->once())
+            ->method('getInfo')
+            ->with($this->equalTo(CURLINFO_HTTP_CODE))
+            ->willReturn(200);
+        $mockCurlRequest->expects($this->once())
+            ->method('close');
 
-        $this->assertTrue($handler->handle($command));
+        $handler = new Handler($mockCurlRequest, "smartcaptcha_server_key", "validation_url");
 
-        // Case 2: Handling with an invalid token
-        $command->token = "invalidToken";
-        $this->assertFalse($handler->handle($command));
+        // Act
+        $result = $handler->handle($command);
 
-        // Case 3: Handling with an invalid IP
-        $command->token = "validToken";
-        $command->ip = "invalidIP";
-        $this->assertFalse($handler->handle($command));
-
-        // Case 4: Handling with an HTTP error
-        // Mock the curl_exec() function to return false
-        $this->mockCurlExec(false);
-        $command->token = "validToken";
-        $command->ip = "127.0.0.1";
-        $this->assertTrue($handler->handle($command));
-
-        // Case 5: Handling with a non-200 HTTP code
-        // Mock the curl_getinfo() function to return a non-200 code
-        $this->mockCurlGetInfo(404);
-        $command->token = "validToken";
-        $command->ip = "127.0.0.1";
-        $this->assertTrue($handler->handle($command));
-
-        // Case 6: Handling with a non-"ok" status response
-        // Mock the curl_exec() function to return a JSON response with status "error"
-        $this->mockCurlExec('{"status": "error"}');
-        $command->token = "validToken";
-        $command->ip = "127.0.0.1";
-        $this->assertFalse($handler->handle($command));
+        // Assert
+        $this->assertTrue($result);
     }
 
-    private function mockCurlExec(bool $returnValue) {
-        // Mock the curl_exec() function to return the provided value
-        $this->getMockBuilder(Handler::class)
-            ->addMethods(['curl_exec'])
-            ->getMock()
-            ->method('curl_exec')
-            ->willReturn($returnValue);
+    public function testHandleInvalidCommand()
+    {
+        // Arrange
+        $command = new Command();
+        $command->token = "invalid_token";
+        $command->ip = "127.0.0.1";
+
+        $mockCurlRequest = $this->createMock(CurlRequest::class);
+        $mockCurlRequest->expects($this->any())
+            ->method('setOption')
+            ->withConsecutive(
+                [$this->equalTo(CURLOPT_URL), $this->equalTo("validation_url?secret=smartcaptcha_server_key&token=invalid_token&ip=127.0.0.1")],
+                [$this->equalTo(CURLOPT_RETURNTRANSFER), $this->equalTo(true)],
+                [$this->equalTo(CURLOPT_TIMEOUT), $this->equalTo(1)]
+            );
+        $mockCurlRequest->expects($this->once())
+            ->method('execute')
+            ->willReturn('{"status": "invalid"}');
+        $mockCurlRequest->expects($this->once())
+            ->method('getInfo')
+            ->with($this->equalTo(CURLINFO_HTTP_CODE))
+            ->willReturn(200);
+        $mockCurlRequest->expects($this->once())
+            ->method('close');
+
+        $handler = new Handler($mockCurlRequest, "smartcaptcha_server_key", "validation_url");
+
+        // Act
+        $result = $handler->handle($command);
+
+        // Assert
+        $this->assertFalse($result);
     }
 }
