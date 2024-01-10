@@ -6,6 +6,12 @@ namespace Audetv\YandexSmartCaptcha\Command\CheckCaptcha;
 
 class Handler
 {
+    /**
+     * Handles the given command.
+     *
+     * @param Command $command The command to handle.
+     * @return bool Whether the handling was successful.
+     */
     public function handle(Command $command): bool
     {
         $token = $command->token;
