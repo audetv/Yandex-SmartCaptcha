@@ -23,7 +23,10 @@ class CheckCaptchaTest extends TestCase
         $curlRequestMock->expects($this->once())
             ->method('getInfo')
             ->willReturn(200);
-        $handler = new Handler($curlRequestMock, 'smartcaptcha_server_key');
+
+        $handler = new Handler('smartcaptcha_server_key');
+        $handler->setCurl($curlRequestMock);
+
         $result = $handler->handle($command);
         $this->assertTrue($result);
     }
@@ -40,7 +43,10 @@ class CheckCaptchaTest extends TestCase
         $curlRequestMock->expects($this->once())
             ->method('getInfo')
             ->willReturn(200);
-        $handler = new Handler($curlRequestMock, 'smartcaptcha_server_key');
+
+        $handler = new Handler('smartcaptcha_server_key');
+        $handler->setCurl($curlRequestMock);
+
         $result = $handler->handle($command);
         $this->assertFalse($result);
     }
@@ -57,7 +63,10 @@ class CheckCaptchaTest extends TestCase
         $curlRequestMock->expects($this->once())
             ->method('getInfo')
             ->willReturn(403);
-        $handler = new Handler($curlRequestMock, 'invalid_smartcaptcha_server_key');
+
+        $handler = new Handler('invalid_smartcaptcha_server_key');
+        $handler->setCurl($curlRequestMock);
+
         $result = $handler->handle($command);
         $this->assertTrue($result);
     }
