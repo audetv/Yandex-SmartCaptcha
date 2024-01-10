@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Audetv\YandexSmartCaptcha\Test\Unit;
+namespace Audetv\YandexSmartCaptcha\Tests;
 
 use Audetv\YandexSmartCaptcha\Http\CurlRequest;
 use PHPUnit\Framework\TestCase;

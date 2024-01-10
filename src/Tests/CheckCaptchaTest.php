@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Audetv\YandexSmartCaptcha\Test\Unit;
+namespace Audetv\YandexSmartCaptcha\Tests;
 
 use Audetv\YandexSmartCaptcha\Command\CheckCaptcha\Command;
 use Audetv\YandexSmartCaptcha\Command\CheckCaptcha\Handler;
