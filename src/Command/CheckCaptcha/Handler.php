@@ -8,56 +8,49 @@ use Audetv\YandexSmartCaptcha\Http\HttpRequest;
 
 class Handler
 {
-    // const SMARTCAPTCHA_SERVER_KEY = "SMARTCAPTCHA_SERVER_KEY";
-    private string $smartcaptcha_server_key;
-    private string $validation_url;
+    protected string $smartCaptchaServerKey;
+    protected string $validationUrl;
     private HttpRequest $curlRequest;
 
-    public function __construct(
-        HttpRequest $curlRequest,
-        string $smartcaptcha_server_key,
-        string $validation_url = ""
-    ) {
-        $this->smartcaptcha_server_key = $smartcaptcha_server_key;
-        if ($validation_url === "") {
-            $this->validation_url = "https://smartcaptcha.yandexcloud.net/validate";
-        } else {
-            $this->validation_url = $validation_url;
-        }
+    public function __construct(HttpRequest $curlRequest, string $smartCaptchaServerKey, string $validationUrl = "")
+    {
         $this->curlRequest = $curlRequest;
+        $this->smartCaptchaServerKey = $smartCaptchaServerKey;
+        $this->validationUrl = $validationUrl === "" ? "https://smartcaptcha.yandexcloud.net/validate" : $validationUrl;
     }
 
     /**
-     * Handles the given command.
+     * Handles the command.
      *
-     * @param Command $command The command to handle.
-     * @return bool Whether the handling was successful.
+     * @param Command $command The command to be handled.
+     * @return bool Returns true if the command was handled successfully, false otherwise.
      */
     public function handle(Command $command): bool
     {
-        $args = http_build_query([
-                                     "secret" => $this->smartcaptcha_server_key,
-                                     "token" => $command->token,
-                                     "ip" => $command->ip
-        ]);
+        $queryParams = http_build_query(
+            [
+                "secret" => $this->smartCaptchaServerKey,
+                "token" => $command->token,
+                "ip" => $command->ip
+            ]);
 
-        $url = "{$this->validation_url}?$args";
+        $url = "{$this->validationUrl}?$queryParams";
 
-        $ch = $this->curlRequest;
-        $ch->setOption(CURLOPT_URL, $url);
-        $ch->setOption(CURLOPT_RETURNTRANSFER, true);
-        $ch->setOption(CURLOPT_TIMEOUT, 1);
-        $server_output = $ch->execute();
-        $httpcode = $ch->getInfo(CURLINFO_HTTP_CODE);
-        $ch->close();
+        $curl = $this->curlRequest;
+        $curl->setOption(CURLOPT_URL, $url);
+        $curl->setOption(CURLOPT_RETURNTRANSFER, true);
+        $curl->setOption(CURLOPT_TIMEOUT, 1);
 
+        $serverOutput = $curl->execute();
+        $httpCode = $curl->getInfo(CURLINFO_HTTP_CODE);
 
-        if ($httpcode !== 200) {
-            echo "Allow access due to an error: code=$httpcode; message=$server_output\n";
+        $curl->close();
+
+        if ($httpCode !== 200) {
             return true;
         }
 
-        $resp = json_decode($server_output);
-        return $resp->status === "ok";
+        $response = json_decode($serverOutput);
+        return $response->status === "ok";
     }
 }
